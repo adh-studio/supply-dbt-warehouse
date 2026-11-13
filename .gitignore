@@ -22,4 +22,5 @@ package-lock.yml
 # Etat d'execution de la boucle operationnelle (ecrit par pipeline et SupplyOps)
 etat_build.json
 supplyops_etat.json
+journal_ops.jsonl
 .pipeline.lock
