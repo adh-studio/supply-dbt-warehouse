@@ -1,0 +1,94 @@
+version: 2
+
+models:
+  - name: offre_marge_familles
+    description: >
+      Data product offre : chiffre d'affaires, marge brute, taux de marge et
+      rotation des stocks par famille de produits. Grain : famille.
+    columns:
+      - name: famille
+        description: Famille marchande.
+        tests:
+          - unique
+          - not_null
+          - accepted_values:
+              values:
+                - "Canapes et fauteuils"
+                - "Luminaires"
+                - "Arts de la table"
+                - "Tapis"
+                - "Rangement"
+                - "Textile deco"
+      - name: quantite_vendue
+        description: Quantites vendues sur la periode, tous canaux confondus.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: chiffre_affaires
+        description: Chiffre d'affaires au prix reellement pratique, en euros.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: marge_brute
+        description: Marge brute en euros (chiffre d'affaires - cout d'achat des ventes).
+        tests:
+          - not_null
+      - name: taux_marge
+        description: Taux de marge brute rapporte au chiffre d'affaires (entre 0 et 1).
+        tests:
+          - ratio_entre_bornes
+      - name: stock_moyen_unites
+        description: Stock moyen observe aux inventaires, en unites.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: rotation_periode
+        description: Rotation de la periode (quantites vendues / stock moyen).
+        tests:
+          - positif_ou_nul
+
+  - name: offre_top_flop_produits
+    description: >
+      Data product offre : classement des produits par chiffre d'affaires avec
+      segmentation top, coeur de gamme, flop et sans vente. Grain : produit.
+    columns:
+      - name: id_produit
+        description: Produit classe.
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_produits')
+              field: id_produit
+      - name: nom_produit
+        description: Libelle commercial du produit.
+      - name: famille
+        description: Famille marchande du produit.
+        tests:
+          - not_null
+      - name: quantite_vendue
+        description: Quantites vendues sur la periode.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: chiffre_affaires
+        description: Chiffre d'affaires du produit, en euros.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: marge_brute
+        description: Marge brute du produit, en euros.
+        tests:
+          - not_null
+      - name: rang_ca
+        description: Rang du produit par chiffre d'affaires decroissant (1 = meilleur).
+        tests:
+          - unique
+          - not_null
+          - positif_ou_nul
+      - name: segment
+        description: Segment commercial issu de la regle de gestion de classement.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["top", "coeur_de_gamme", "flop", "sans_vente"]
