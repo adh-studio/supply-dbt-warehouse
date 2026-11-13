@@ -27,9 +27,22 @@ if [ ! -x ".venv/bin/dbt" ]; then
 fi
 export DBT_PROFILES_DIR="$PWD"
 
-# 3. Regeneration des seeds (deterministe, graine fixe)
-echo "==> Generation des seeds"
-.venv/bin/python scripts/generer_seeds.py
+# 3. Seeds : generes uniquement si un CSV manque ou si REGENERER_SEEDS=1.
+# Protection des saisies : les seeds sont desormais alimentes par la
+# plateforme SupplyOps, les ecraser detruirait les saisies operationnelles.
+SEEDS_ATTENDUS="produits fournisseurs entrepots commandes_achats receptions stocks ventes"
+SEED_MANQUANT=0
+for seed in $SEEDS_ATTENDUS; do
+    if [ ! -f "seeds/${seed}.csv" ]; then
+        SEED_MANQUANT=1
+    fi
+done
+if [ "${REGENERER_SEEDS:-0}" = "1" ] || [ "$SEED_MANQUANT" = "1" ]; then
+    echo "==> Generation des seeds (deterministe, graine fixe)"
+    .venv/bin/python scripts/generer_seeds.py
+else
+    echo "==> Seeds existants conserves (REGENERER_SEEDS=1 pour forcer la regeneration)"
+fi
 
 # 4. Pipeline dbt complet (dbt deps seulement si le paquet n'est pas deja la,
 # pour que les relances fonctionnent hors ligne)

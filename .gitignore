@@ -18,3 +18,8 @@ package-lock.yml
 
 # Cookie utilisateur dbt
 .user.yml
+
+# Etat d'execution de la boucle operationnelle (ecrit par pipeline et SupplyOps)
+etat_build.json
+supplyops_etat.json
+.pipeline.lock

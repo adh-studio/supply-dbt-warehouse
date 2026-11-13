@@ -58,7 +58,17 @@ cd supply-dbt-warehouse
 ./run_e2e.sh
 ```
 
-Le script cree l'environnement virtuel, installe les dependances epinglees, regenere les seeds, puis enchaine `dbt deps`, `dbt seed` et `dbt build`.
+Le script cree l'environnement virtuel, installe les dependances epinglees, genere les seeds s'ils sont absents, puis enchaine `dbt deps`, `dbt seed` et `dbt build`.
+
+### Protection des seeds saisis
+
+Les seeds CSV sont desormais alimentes par la plateforme de saisie SupplyOps : `run_e2e.sh` ne les regenere plus s'ils existent deja (message `Seeds existants conserves`). La generation synthetique (`scripts/generer_seeds.py`) ne s'execute que si un des sept CSV manque, ou sur demande explicite :
+
+```bash
+REGENERER_SEEDS=1 ./run_e2e.sh   # repart des donnees synthetiques, ecrase les saisies
+```
+
+Deux fichiers d'etat non versionnes vivent a la racine du repo : `etat_build.json` (dernier build dbt : statut, pass/fail/total, duree, declencheur, historique des 20 derniers), ecrit par le module `pipeline` du repo [supply-data-agents](https://github.com/adh-studio/supply-data-agents), et `supplyops_etat.json` (saisies en attente de publication), ecrit par SupplyOps. Le verrou `.pipeline.lock` empeche deux builds concurrents.
 
 ## Rejouer les tests
 
