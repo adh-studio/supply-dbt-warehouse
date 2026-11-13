@@ -1,0 +1,265 @@
+version: 2
+
+models:
+  - name: stg_fournisseurs
+    description: Vue de staging des fournisseurs, typee et renommee, sans logique metier.
+    columns:
+      - name: id_fournisseur
+        description: Identifiant unique du fournisseur (cle naturelle F000X).
+        tests:
+          - unique
+          - not_null
+      - name: nom_fournisseur
+        description: Raison sociale du fournisseur.
+        tests:
+          - not_null
+      - name: pays
+        description: Pays d'origine des expeditions.
+        tests:
+          - not_null
+      - name: delai_contractuel_jours
+        description: Delai de livraison contractuel en jours calendaires.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: note_rse
+        description: Note RSE attribuee lors du dernier audit fournisseur.
+        tests:
+          - accepted_values:
+              values: ["A", "B", "C", "D"]
+
+  - name: stg_produits
+    description: >
+      Vue de staging du catalogue produits, enrichie de la marge unitaire
+      theorique calculee a partir des prix catalogue.
+    columns:
+      - name: id_produit
+        description: Identifiant unique du produit (cle naturelle P000X).
+        tests:
+          - unique
+          - not_null
+      - name: nom_produit
+        description: Libelle commercial du produit.
+        tests:
+          - not_null
+      - name: famille
+        description: Famille marchande de rattachement.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "Canapes et fauteuils"
+                - "Luminaires"
+                - "Arts de la table"
+                - "Tapis"
+                - "Rangement"
+                - "Textile deco"
+      - name: id_fournisseur
+        description: Fournisseur principal du produit.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_fournisseurs')
+              field: id_fournisseur
+      - name: prix_achat
+        description: Prix d'achat unitaire negocie, en euros.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: prix_vente
+        description: Prix de vente catalogue, en euros.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: marge_unitaire
+        description: Marge brute unitaire theorique (prix de vente - prix d'achat).
+        tests:
+          - positif_ou_nul
+      - name: taux_marge_unitaire
+        description: Taux de marge theorique rapporte au prix de vente.
+        tests:
+          - ratio_entre_bornes
+
+  - name: stg_entrepots
+    description: Vue de staging du referentiel des entrepots logistiques.
+    columns:
+      - name: id_entrepot
+        description: Identifiant unique de l'entrepot (cle naturelle E0X).
+        tests:
+          - unique
+          - not_null
+      - name: nom_entrepot
+        description: Nom usuel du site logistique.
+        tests:
+          - not_null
+      - name: capacite_m3
+        description: Capacite de stockage en metres cubes.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: type_entrepot
+        description: Role du site dans le reseau logistique.
+        tests:
+          - accepted_values:
+              values: ["central", "regional"]
+
+  - name: stg_commandes_achats
+    description: Vue de staging des commandes d'achats aupres des fournisseurs.
+    columns:
+      - name: id_commande
+        description: Identifiant unique de la commande d'achat (cle naturelle CA000X).
+        tests:
+          - unique
+          - not_null
+      - name: id_produit
+        description: Produit commande.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_produits')
+              field: id_produit
+      - name: id_fournisseur
+        description: Fournisseur destinataire de la commande.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_fournisseurs')
+              field: id_fournisseur
+      - name: id_entrepot
+        description: Entrepot de livraison attendu.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_entrepots')
+              field: id_entrepot
+      - name: date_commande
+        description: Date d'emission de la commande.
+        tests:
+          - not_null
+      - name: quantite_commandee
+        description: Quantite commandee en unites de vente.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: statut
+        description: Etat d'avancement de la commande.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["en_cours", "partielle", "recue"]
+
+  - name: stg_receptions
+    description: Vue de staging des receptions en entrepot, rattachees aux commandes.
+    columns:
+      - name: id_reception
+        description: Identifiant unique de la reception (cle naturelle R000X).
+        tests:
+          - unique
+          - not_null
+      - name: id_commande
+        description: Commande d'achat receptionnee.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_commandes_achats')
+              field: id_commande
+      - name: date_reception
+        description: Date d'arrivee physique en entrepot.
+        tests:
+          - not_null
+      - name: quantite_recue
+        description: Quantite receptionnee sur cette ligne.
+        tests:
+          - not_null
+          - positif_ou_nul
+
+  - name: stg_stocks
+    description: >
+      Vue de staging des photographies de stock par produit, entrepot et date
+      d'inventaire, avec indicateur de rupture.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - id_produit
+            - id_entrepot
+            - date_inventaire
+    columns:
+      - name: id_produit
+        description: Produit inventorie.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_produits')
+              field: id_produit
+      - name: id_entrepot
+        description: Entrepot ou le stock est releve.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_entrepots')
+              field: id_entrepot
+      - name: date_inventaire
+        description: Date de la photographie de stock.
+        tests:
+          - not_null
+      - name: quantite_disponible
+        description: Quantite disponible a la vente au moment de l'inventaire.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: indicateur_rupture
+        description: Vaut 1 si le stock releve est nul, 0 sinon.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+
+  - name: stg_ventes
+    description: >
+      Vue de staging des lignes de ventes, avec montant de ligne valorise
+      au prix reellement pratique.
+    columns:
+      - name: id_vente
+        description: Identifiant unique de la ligne de vente (cle naturelle V0000X).
+        tests:
+          - unique
+          - not_null
+      - name: date_vente
+        description: Date de la transaction.
+        tests:
+          - not_null
+      - name: id_produit
+        description: Produit vendu.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_produits')
+              field: id_produit
+      - name: id_entrepot
+        description: Entrepot ayant expedie ou approvisionne la vente.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_entrepots')
+              field: id_entrepot
+      - name: canal
+        description: Canal de vente.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["magasin", "web"]
+      - name: quantite
+        description: Quantite vendue sur la ligne.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: prix_unitaire
+        description: Prix unitaire reellement pratique, promotions incluses.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: montant_ligne
+        description: Montant de la ligne (quantite x prix unitaire).
+        tests:
+          - not_null
+          - positif_ou_nul
