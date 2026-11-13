@@ -1,0 +1,150 @@
+version: 2
+
+models:
+  - name: supply_couverture_stock
+    description: >
+      Data product supply : couverture de stock en jours par produit et entrepot.
+      La couverture rapporte le stock du dernier inventaire a la vente moyenne
+      journaliere des 90 derniers jours. Le statut qualifie la situation
+      (rupture, tendu, sain, surstock, dormant). Grain : produit x entrepot.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - id_produit
+            - id_entrepot
+    columns:
+      - name: id_produit
+        description: Produit concerne.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_produits')
+              field: id_produit
+      - name: nom_produit
+        description: Libelle commercial du produit.
+      - name: famille
+        description: Famille marchande du produit.
+      - name: id_entrepot
+        description: Entrepot concerne.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_entrepots')
+              field: id_entrepot
+      - name: nom_entrepot
+        description: Nom du site logistique.
+      - name: date_dernier_inventaire
+        description: Date de la derniere photographie de stock disponible.
+        tests:
+          - not_null
+      - name: quantite_disponible
+        description: Stock disponible au dernier inventaire.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: quantite_vendue_90j
+        description: Quantite vendue sur les 90 derniers jours de l'historique.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: vente_moyenne_jour
+        description: Vente moyenne journaliere sur la fenetre de 90 jours.
+        tests:
+          - positif_ou_nul
+      - name: couverture_jours
+        description: >
+          Nombre de jours de vente couverts par le stock actuel. Nul si le
+          produit n'a aucune vente sur la fenetre (produit dormant).
+        tests:
+          - positif_ou_nul
+      - name: statut_couverture
+        description: Qualification de la situation de stock selon la regle de gestion.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["rupture", "tendu", "sain", "surstock", "dormant"]
+
+  - name: supply_taux_rupture
+    description: >
+      Data product supply : taux de rupture observe aux inventaires, par
+      entrepot et famille. Grain : entrepot x famille.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - id_entrepot
+            - famille
+    columns:
+      - name: id_entrepot
+        description: Entrepot concerne.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_entrepots')
+              field: id_entrepot
+      - name: nom_entrepot
+        description: Nom du site logistique.
+      - name: famille
+        description: Famille marchande.
+        tests:
+          - not_null
+      - name: nb_observations
+        description: Nombre de photographies de stock sur la periode.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: nb_ruptures
+        description: Nombre d'observations a stock nul.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: taux_rupture
+        description: Part des observations en rupture (entre 0 et 1).
+        tests:
+          - not_null
+          - ratio_entre_bornes
+
+  - name: supply_delais_fournisseurs
+    description: >
+      Data product supply : delai de livraison reel, ecart au contractuel et
+      taux de service OTIF (a l'heure et complet) par fournisseur.
+      Grain : fournisseur.
+    columns:
+      - name: id_fournisseur
+        description: Fournisseur evalue.
+        tests:
+          - unique
+          - not_null
+          - relationships:
+              to: ref('stg_fournisseurs')
+              field: id_fournisseur
+      - name: nom_fournisseur
+        description: Raison sociale du fournisseur.
+      - name: pays
+        description: Pays d'origine des expeditions.
+      - name: note_rse
+        description: Note RSE du dernier audit.
+      - name: delai_contractuel_jours
+        description: Delai contractuel negocie, en jours.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: nb_commandes
+        description: Nombre total de commandes passees sur la periode.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: nb_commandes_receptionnees
+        description: Nombre de commandes ayant au moins une reception.
+        tests:
+          - not_null
+          - positif_ou_nul
+      - name: delai_moyen_reel_jours
+        description: Delai moyen constate entre commande et premiere reception.
+        tests:
+          - positif_ou_nul
+      - name: ecart_moyen_jours
+        description: Ecart moyen entre delai reel et delai contractuel (negatif si en avance).
+      - name: taux_service_otif
+        description: Part des commandes livrees a l'heure et completes (entre 0 et 1).
+        tests:
+          - ratio_entre_bornes
