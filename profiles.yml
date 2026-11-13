@@ -1,0 +1,7 @@
+supply_dbt_warehouse:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: supply.duckdb
+      threads: 4

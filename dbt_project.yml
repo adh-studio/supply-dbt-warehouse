@@ -1,0 +1,64 @@
+name: supply_dbt_warehouse
+version: "1.0.0"
+config-version: 2
+
+profile: supply_dbt_warehouse
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+require-dbt-version: ">=1.8.0"
+
+models:
+  supply_dbt_warehouse:
+    staging:
+      +materialized: view
+      +tags: ["staging"]
+    marts:
+      +materialized: table
+      supply:
+        +tags: ["supply"]
+      offre:
+        +tags: ["offre"]
+
+seeds:
+  supply_dbt_warehouse:
+    +tags: ["seed"]
+    fournisseurs:
+      +column_types:
+        id_fournisseur: varchar
+        delai_contractuel_jours: integer
+    produits:
+      +column_types:
+        id_produit: varchar
+        prix_achat: double
+        prix_vente: double
+    entrepots:
+      +column_types:
+        id_entrepot: varchar
+        capacite_m3: integer
+    commandes_achats:
+      +column_types:
+        id_commande: varchar
+        date_commande: date
+        quantite_commandee: integer
+    receptions:
+      +column_types:
+        id_reception: varchar
+        date_reception: date
+        quantite_recue: integer
+    stocks:
+      +column_types:
+        date_inventaire: date
+        quantite_disponible: integer
+    ventes:
+      +column_types:
+        id_vente: varchar
+        date_vente: date
+        quantite: integer
+        prix_unitaire: double

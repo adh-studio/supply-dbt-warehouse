@@ -1,0 +1,17 @@
+# Environnements Python
+.venv/
+__pycache__/
+*.pyc
+
+# Artefacts dbt
+target/
+dbt_packages/
+logs/
+package-lock.yml
+
+# Bases locales
+*.duckdb
+*.duckdb.wal
+
+# Systeme
+.DS_Store
