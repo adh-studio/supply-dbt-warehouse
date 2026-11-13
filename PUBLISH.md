@@ -6,7 +6,7 @@ Commandes a executer depuis la racine du projet.
 
 ```bash
 gh repo create supply-dbt-warehouse --public \
-  --description "Entrepot analytique dbt + DuckDB du domaine Offre et Supply d'une enseigne de decoration : data products testes, documentes, CI GitHub Actions" \
+  --description "Entrepot analytique dbt + DuckDB du domaine Offre et Supply d'une activite d'import/distribution de produits electroniques a Madagascar : data products testes, documentes, CI GitHub Actions" \
   --source . --push
 ```
 

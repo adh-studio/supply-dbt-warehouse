@@ -2,18 +2,31 @@
 
 [![CI](https://github.com/adh-studio/supply-dbt-warehouse/actions/workflows/ci.yml/badge.svg)](https://github.com/adh-studio/supply-dbt-warehouse/actions/workflows/ci.yml)
 
-Entrepot analytique dbt du domaine **Offre et Supply** d'une enseigne de decoration et d'ameublement. Le projet transforme des donnees operationnelles (fournisseurs, produits, entrepots, commandes d'achats, receptions, stocks, ventes) en data products analytiques testes, documentes et prets a consommer.
+Entrepot analytique dbt + DuckDB du domaine **Offre et Supply** d'une activite reelle : l'import et la distribution de produits electroniques a Madagascar (consoles et gaming, audio, telephonie, montres connectees, eclairage LED, electromenager). C'est la replique analytique de l'ERP de l'auteur : les lots d'import Chine -> Tana (fret AIR via Ivato, SEA via le port de Tamatave), le passage en douane, les stocks des depots et boutiques d'Antananarivo et les ventes en ariary (MGA) y deviennent des data products testes, documentes et prets a consommer.
 
 Documentation dbt publiee : https://adh-studio.github.io/supply-dbt-warehouse/
 
 ## Contexte metier
 
-Une enseigne de decoration pilote son activite autour de deux enjeux :
+L'activite consiste a sourcer des produits aupres d'usines et de grossistes de Shenzhen, Guangzhou, Yiwu, Dongguan et Dubai, a les importer par lots (fret aerien en 10 a 15 jours, fret maritime en 40 a 55 jours), puis a les vendre en boutique a Antananarivo et en ligne avec livraison sur Tana. Deux enjeux pilotent l'activite :
 
-- **Supply** : securiser la disponibilite produit tout en maitrisant le stock. Les equipes ont besoin de connaitre la couverture de stock en jours, le taux de rupture, les delais reels des fournisseurs et leur taux de service OTIF (a l'heure et complet).
-- **Offre** : piloter la rentabilite de l'assortiment. Les equipes suivent la marge et la rotation par famille, ainsi que le classement top et flop des produits.
+- **Supply** : securiser la disponibilite produit malgre des delais d'import longs et incertains (douane, congestion du port de Tamatave). Les indicateurs cles sont la couverture de stock en jours, le taux de rupture, les delais reels des fournisseurs et leur taux de service OTIF (a l'heure et complet).
+- **Offre** : piloter la rentabilite de l'assortiment importe. Marge et rotation par famille, classement top et flop des produits, detection des paris rates (surstock) et des references dormantes.
 
-Les donnees sont synthetiques, generees par un script deterministe commite dans le depot (`scripts/generer_seeds.py`), avec un univers realiste : canapes, luminaires, arts de la table, tapis, rangement, textile deco, 4 entrepots, 8 fournisseurs.
+## Correspondance ERP (Prisma) -> entrepot
+
+L'ERP source est une application PostgreSQL + Prisma. Chaque seed de l'entrepot correspond a une ou plusieurs tables de l'ERP :
+
+| Table de l'ERP (Prisma) | Seed de l'entrepot | Notes |
+|---|---|---|
+| `ShipmentBatch` + `BatchItem` | `commandes_achats` | un lot d'import par produit, fret AIR ou SEA |
+| Lots passes en `RECEIVED_TANA` (apres `CUSTOMS_CLEARING`) | `receptions` | arrivees apres douane, parfois en plusieurs fois |
+| `Order` / `OrderItem` | `ventes` | ventes boutique et web, prix figes en MGA |
+| `StockMovement` / `SerialItem` | `stocks` | photographies de stock par produit et par site |
+| `Product` / `ProductVariant` | `produits` | cout de revient debarque (`landedCostMga`) et prix de vente (`sellingPriceMga`) |
+| Fournisseurs sources sur les lots | `fournisseurs` | delai de fret promis par mode, note RSE d'audit usine |
+
+Dans le depot public, les donnees sont **synthetiques et representatives**, generees par un script deterministe commite dans le depot (`scripts/generer_seeds.py`, graine fixe). En local, les seeds peuvent etre regeneres depuis l'ERP reel avec `scripts/exporter_depuis_erp.py` (optionnel, voir plus bas). Tous les montants sont en ariary (MGA) : une PS5 autour de 3 500 000 MGA, des ecouteurs TWS autour de 150 000 MGA.
 
 ## Architecture
 
@@ -32,7 +45,7 @@ ventes                 --->  stg_ventes                - offre_top_flop_produits
 - **Moteur** : dbt-core + dbt-duckdb, aucun service externe, tout tourne en local.
 - **Staging** : typage et renommage, aucune logique metier.
 - **Marts** : regles de gestion documentees en tete de chaque modele SQL et dans les schema.yml.
-- **Qualite** : 132 tests dbt executes a chaque build (unique, not_null, accepted_values, relationships, dbt_utils, 2 tests generiques personnalises `positif_ou_nul` et `ratio_entre_bornes`, 1 test singulier de coherence receptions vs commandes).
+- **Qualite** : 132 tests dbt executes a chaque build (unique, not_null, accepted_values, relationships, dbt_utils, 2 tests generiques personnalises `positif_ou_nul` et `ratio_entre_bornes`, 1 test singulier de coherence receptions vs lots d'import).
 - **Documentation** : site dbt docs genere et versionne dans `docs/` pour GitHub Pages.
 
 ## Installation
@@ -62,25 +75,37 @@ export DBT_PROFILES_DIR="$PWD"
 
 La CI GitHub Actions (`.github/workflows/ci.yml`) execute exactement le meme scenario a chaque push.
 
+## Regenerer les seeds depuis l'ERP reel (optionnel, local uniquement)
+
+```bash
+pip install "psycopg[binary]"
+export ERP_DATABASE_URL="postgresql://user:motdepasse@hote:5432/erp"
+python scripts/exporter_depuis_erp.py
+.venv/bin/dbt seed --full-refresh && .venv/bin/dbt build
+```
+
+Sans `ERP_DATABASE_URL`, le script affiche une aide et sort proprement : la CI et le depot public n'utilisent que les donnees synthetiques.
+
 ## Ce que ce projet demontre pour un role de Product Owner Data et IA
 
-- **Data products definis par le metier** : chaque mart repond a une question d'une equipe Offre ou Supply, avec un grain explicite, des regles de gestion ecrites et des criteres d'acceptation traduits en tests dbt.
-- **Qualite contractualisee** : les attentes sur les donnees (unicite, integrite referentielle, bornes des ratios, coherence receptions vs commandes) sont versionnees et verifiees a chaque build, comme le prevoit une demarche de data contracts.
-- **Documentation self-service** : le catalogue dbt (lineage, descriptions de colonnes, tests) est publie sur GitHub Pages et consultable par les equipes sans outil supplementaire, premiere brique d'un catalogue de data products.
+- **Data products definis par le metier** : chaque mart repond a une question concrete de l'activite d'import (quelles references commander avant la rupture, quel fournisseur penalise la promesse client, quelle famille porte la marge), avec un grain explicite, des regles de gestion ecrites et des criteres d'acceptation traduits en tests dbt.
+- **Qualite contractualisee** : les attentes sur les donnees (unicite, integrite referentielle, bornes des ratios, coherence receptions vs lots d'import) sont versionnees et verifiees a chaque build, comme le prevoit une demarche de data contracts.
+- **Documentation self-service** : le catalogue dbt (lineage, descriptions de colonnes, tests) est publie sur GitHub Pages et consultable sans outil supplementaire, premiere brique d'un catalogue de data products.
 - **Domain-Driven Data** : la separation marts/supply et marts/offre reflete un decoupage par domaine metier, aligne avec une organisation Data Mesh ou chaque domaine possede ses produits.
-- **Industrialisation** : pipeline reproductible de bout en bout (donnees synthetiques deterministes, dependances epinglees, CI sur chaque push), condition du passage a l'echelle et de la mesure d'adoption.
+- **Industrialisation** : pipeline reproductible de bout en bout (donnees synthetiques deterministes, dependances epinglees, CI sur chaque push) et chemin documente vers les donnees reelles de l'ERP, condition du passage a l'echelle.
 
 ## Structure du depot
 
 ```
-scripts/generer_seeds.py   generation deterministe des donnees synthetiques
-seeds/                     CSV sources versionnes
-models/staging/            vues de staging + tests
-models/marts/supply/       data products supply + tests
-models/marts/offre/        data products offre + tests
-tests/generic/             tests generiques personnalises
-tests/                     test singulier
-docs/                      site dbt docs pour GitHub Pages
-run_e2e.sh                 test de bout en bout
-.github/workflows/ci.yml   CI GitHub Actions
+scripts/generer_seeds.py        generation deterministe des donnees synthetiques
+scripts/exporter_depuis_erp.py  export optionnel depuis la base PostgreSQL de l'ERP
+seeds/                          CSV sources versionnes
+models/staging/                 vues de staging + tests
+models/marts/supply/            data products supply + tests
+models/marts/offre/             data products offre + tests
+tests/generic/                  tests generiques personnalises
+tests/                          test singulier
+docs/                           site dbt docs pour GitHub Pages
+run_e2e.sh                      test de bout en bout
+.github/workflows/ci.yml        CI GitHub Actions
 ```
