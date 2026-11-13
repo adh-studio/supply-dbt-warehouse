@@ -1,0 +1,31 @@
+version: 2
+
+seeds:
+  - name: fournisseurs
+    description: >
+      Referentiel des fournisseurs de l'enseigne (donnees synthetiques).
+      Inclut le delai de livraison contractuel et la note RSE issue des audits.
+  - name: produits
+    description: >
+      Catalogue produits de l'assortiment decoration et ameublement,
+      rattache a une famille et a un fournisseur principal.
+  - name: entrepots
+    description: >
+      Referentiel des entrepots logistiques, un site central et des
+      plateformes regionales.
+  - name: commandes_achats
+    description: >
+      Commandes d'achats passees aupres des fournisseurs pour reapprovisionner
+      les entrepots.
+  - name: receptions
+    description: >
+      Receptions en entrepot rattachees aux commandes d'achats. Une commande
+      peut etre receptionnee en plusieurs fois.
+  - name: stocks
+    description: >
+      Photographies de stock relevees a chaque inventaire tournant, par produit
+      et par entrepot.
+  - name: ventes
+    description: >
+      Lignes de ventes magasin et web, valorisees au prix reellement pratique
+      (promotions incluses).

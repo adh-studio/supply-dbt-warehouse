@@ -1,0 +1,9 @@
+id_fournisseur,nom_fournisseur,pays,delai_contractuel_jours,note_rse
+F001,Ateliers du Rhone,France,12,A
+F002,Manufacture de Porto,Portugal,18,B
+F003,Hanoi Rotin Collective,Vietnam,42,B
+F004,Jaipur Textiles,Inde,45,C
+F005,Meubles de Poznan,Pologne,15,A
+F006,Ceramiche di Faenza,Italie,21,B
+F007,Luminaires d'Anjou,France,10,A
+F008,Tissages de Flandre,Belgique,14,B
