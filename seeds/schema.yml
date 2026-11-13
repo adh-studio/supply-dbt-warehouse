@@ -3,29 +3,40 @@ version: 2
 seeds:
   - name: fournisseurs
     description: >
-      Referentiel des fournisseurs de l'enseigne (donnees synthetiques).
-      Inclut le delai de livraison contractuel et la note RSE issue des audits.
+      Referentiel des fournisseurs sources en Chine (Shenzhen, Guangzhou,
+      Yiwu, Dongguan) et a Dubai. Le delai contractuel est le delai de fret
+      promis jusqu'a l'arrivee a Tana (AIR environ 10 a 15 jours, SEA environ
+      40 a 55 jours) ; la note RSE provient des audits usine.
+      Equivalent ERP : fournisseurs references sur les lots ShipmentBatch.
   - name: produits
     description: >
-      Catalogue produits de l'assortiment decoration et ameublement,
-      rattache a une famille et a un fournisseur principal.
+      Catalogue des produits electroniques importes (consoles, audio,
+      telephonie, montres connectees, eclairage LED, electromenager),
+      rattaches a une famille et a un fournisseur principal. Prix d'achat =
+      cout de revient debarque en ariary (MGA), prix de vente conseille en MGA.
+      Equivalent ERP : Product / ProductVariant.
   - name: entrepots
     description: >
-      Referentiel des entrepots logistiques, un site central et des
-      plateformes regionales.
+      Referentiel des sites de stockage et de vente : depot central
+      d'Ankorondrano, boutiques d'Analakely et de Behoririka a Antananarivo,
+      depot de Tamatave pres du port.
   - name: commandes_achats
     description: >
-      Commandes d'achats passees aupres des fournisseurs pour reapprovisionner
-      les entrepots.
+      Lots d'import commandes aupres des fournisseurs (fret AIR via Ivato ou
+      SEA via le port de Tamatave). Equivalent ERP : ShipmentBatch et ses
+      lignes BatchItem.
   - name: receptions
     description: >
-      Receptions en entrepot rattachees aux commandes d'achats. Une commande
-      peut etre receptionnee en plusieurs fois.
+      Arrivees RECEIVED_TANA apres dedouanement, rattachees aux lots d'import.
+      Un lot peut etre receptionne en plusieurs fois (partie bloquee en
+      douane, reexpedition).
   - name: stocks
     description: >
-      Photographies de stock relevees a chaque inventaire tournant, par produit
-      et par entrepot.
+      Photographies de stock relevees a chaque inventaire tournant, par
+      produit et par site. Equivalent ERP : ledger StockMovement et unites
+      serialisees SerialItem.
   - name: ventes
     description: >
-      Lignes de ventes magasin et web, valorisees au prix reellement pratique
-      (promotions incluses).
+      Lignes de ventes boutique et web (livraison sur Tana), valorisees au
+      prix reellement pratique en ariary (MGA), promotions incluses.
+      Equivalent ERP : Order / OrderItem.

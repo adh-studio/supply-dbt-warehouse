@@ -1,9 +1,9 @@
-id_fournisseur,nom_fournisseur,pays,delai_contractuel_jours,note_rse
-F001,Ateliers du Rhone,France,12,A
-F002,Manufacture de Porto,Portugal,18,B
-F003,Hanoi Rotin Collective,Vietnam,42,B
-F004,Jaipur Textiles,Inde,45,C
-F005,Meubles de Poznan,Pologne,15,A
-F006,Ceramiche di Faenza,Italie,21,B
-F007,Luminaires d'Anjou,France,10,A
-F008,Tissages de Flandre,Belgique,14,B
+id_fournisseur,nom_fournisseur,pays,mode_fret,delai_contractuel_jours,note_rse
+F001,Shenzhen Gametech Electronics,Chine,AIR,12,B
+F002,Guangzhou Audio Factory,Chine,AIR,14,B
+F003,Huaqiangbei Digital Trading,Chine,AIR,10,C
+F004,Yiwu Smart Accessories,Chine,SEA,45,B
+F005,Dongguan LED Technologies,Chine,SEA,50,C
+F006,Guangzhou Home Appliances Co,Chine,SEA,55,B
+F007,Shenzhen Wearables Lab,Chine,AIR,15,A
+F008,Dubai Electronics Hub,Emirats arabes unis,AIR,12,A

@@ -25,14 +25,14 @@ models:
       - name: famille
         description: Famille marchande du produit.
       - name: id_entrepot
-        description: Entrepot concerne.
+        description: Site de stockage concerne (depot ou boutique).
         tests:
           - not_null
           - relationships:
               to: ref('stg_entrepots')
               field: id_entrepot
       - name: nom_entrepot
-        description: Nom du site logistique.
+        description: Nom du depot ou de la boutique.
       - name: date_dernier_inventaire
         description: Date de la derniere photographie de stock disponible.
         tests:
@@ -75,14 +75,14 @@ models:
             - famille
     columns:
       - name: id_entrepot
-        description: Entrepot concerne.
+        description: Site de stockage concerne (depot ou boutique).
         tests:
           - not_null
           - relationships:
               to: ref('stg_entrepots')
               field: id_entrepot
       - name: nom_entrepot
-        description: Nom du site logistique.
+        description: Nom du depot ou de la boutique.
       - name: famille
         description: Famille marchande.
         tests:
@@ -105,7 +105,7 @@ models:
 
   - name: supply_delais_fournisseurs
     description: >
-      Data product supply : delai de livraison reel, ecart au contractuel et
+      Data product supply : delai d'import reel (fret + douane), ecart au delai promis et
       taux de service OTIF (a l'heure et complet) par fournisseur.
       Grain : fournisseur.
     columns:
@@ -120,26 +120,26 @@ models:
       - name: nom_fournisseur
         description: Raison sociale du fournisseur.
       - name: pays
-        description: Pays d'origine des expeditions.
+        description: Pays d'origine des expeditions (Chine, Emirats arabes unis).
       - name: note_rse
-        description: Note RSE du dernier audit.
+        description: Note RSE du dernier audit usine.
       - name: delai_contractuel_jours
-        description: Delai contractuel negocie, en jours.
+        description: Delai de fret promis (AIR ou SEA), en jours, douane comprise.
         tests:
           - not_null
           - positif_ou_nul
       - name: nb_commandes
-        description: Nombre total de commandes passees sur la periode.
+        description: Nombre total de lots d'import commandes sur la periode.
         tests:
           - not_null
           - positif_ou_nul
       - name: nb_commandes_receptionnees
-        description: Nombre de commandes ayant au moins une reception.
+        description: Nombre de lots ayant au moins une arrivee RECEIVED_TANA.
         tests:
           - not_null
           - positif_ou_nul
       - name: delai_moyen_reel_jours
-        description: Delai moyen constate entre commande et premiere reception.
+        description: Delai moyen constate entre la commande du lot et la premiere arrivee a Tana.
         tests:
           - positif_ou_nul
       - name: ecart_moyen_jours

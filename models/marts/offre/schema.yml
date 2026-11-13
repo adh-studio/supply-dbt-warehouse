@@ -4,7 +4,7 @@ models:
   - name: offre_marge_familles
     description: >
       Data product offre : chiffre d'affaires, marge brute, taux de marge et
-      rotation des stocks par famille de produits. Grain : famille.
+      rotation des stocks par famille de produits importes. Grain : famille.
     columns:
       - name: famille
         description: Famille marchande.
@@ -13,24 +13,24 @@ models:
           - not_null
           - accepted_values:
               values:
-                - "Canapes et fauteuils"
-                - "Luminaires"
-                - "Arts de la table"
-                - "Tapis"
-                - "Rangement"
-                - "Textile deco"
+                - "Consoles et gaming"
+                - "Audio"
+                - "Telephonie et accessoires"
+                - "Montres connectees"
+                - "Eclairage LED"
+                - "Electromenager"
       - name: quantite_vendue
         description: Quantites vendues sur la periode, tous canaux confondus.
         tests:
           - not_null
           - positif_ou_nul
       - name: chiffre_affaires
-        description: Chiffre d'affaires au prix reellement pratique, en euros.
+        description: Chiffre d'affaires au prix reellement pratique, en ariary (MGA).
         tests:
           - not_null
           - positif_ou_nul
       - name: marge_brute
-        description: Marge brute en euros (chiffre d'affaires - cout d'achat des ventes).
+        description: Marge brute en ariary (chiffre d'affaires - cout de revient debarque des ventes).
         tests:
           - not_null
       - name: taux_marge
@@ -72,12 +72,12 @@ models:
           - not_null
           - positif_ou_nul
       - name: chiffre_affaires
-        description: Chiffre d'affaires du produit, en euros.
+        description: Chiffre d'affaires du produit, en ariary (MGA).
         tests:
           - not_null
           - positif_ou_nul
       - name: marge_brute
-        description: Marge brute du produit, en euros.
+        description: Marge brute du produit, en ariary (MGA).
         tests:
           - not_null
       - name: rang_ca

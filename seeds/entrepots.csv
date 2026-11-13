@@ -1,5 +1,5 @@
 id_entrepot,nom_entrepot,ville,capacite_m3,type_entrepot
-E01,Entrepot central Lille,Lille,48000,central
-E02,Plateforme Lyon Sud,Lyon,26000,regional
-E03,Plateforme Bordeaux Lac,Bordeaux,21000,regional
-E04,Plateforme Marseille Nord,Marseille,18000,regional
+E01,Depot central Ankorondrano,Antananarivo,1200,central
+E02,Boutique Analakely,Antananarivo,150,boutique
+E03,Boutique Behoririka,Antananarivo,120,boutique
+E04,Depot Tamatave,Toamasina,400,depot_regional

@@ -1,61 +1,43 @@
 id_produit,nom_produit,famille,id_fournisseur,prix_achat,prix_vente
-P0001,Banquette Bergen,Canapes et fauteuils,F001,332.14,765.49
-P0002,Fauteuil Rivoli,Canapes et fauteuils,F005,393.17,778.41
-P0003,Canape d'angle Cassis,Canapes et fauteuils,F005,242.49,479.58
-P0004,Pouf Rivoli,Canapes et fauteuils,F005,156.8,327.71
-P0005,Banquette Cassis,Canapes et fauteuils,F001,425.1,936.01
-P0006,Canape d'angle Oslo,Canapes et fauteuils,F005,382.7,829.74
-P0007,Canape 3 places Vence,Canapes et fauteuils,F005,148.37,303.65
-P0008,Fauteuil Oslo,Canapes et fauteuils,F001,327.85,738.41
-P0009,Canape d'angle Vence,Canapes et fauteuils,F001,358.05,818.69
-P0010,Fauteuil Luberon,Canapes et fauteuils,F005,427.91,998.42
-P0011,Lampe a poser Luna,Luminaires,F003,31.09,88.92
-P0012,Applique Eclat,Luminaires,F003,31.22,79.59
-P0013,Lampe a poser Solstice,Luminaires,F003,25.57,58.75
-P0014,Lampadaire Brume,Luminaires,F003,74.51,186.27
-P0015,Applique Solstice,Luminaires,F007,43.32,125.55
-P0016,Guirlande Eclat,Luminaires,F007,55.27,125.11
-P0017,Suspension Solstice,Luminaires,F007,83.75,193.21
-P0018,Suspension Luna,Luminaires,F007,78.16,195.05
-P0019,Lampe a poser Brume,Luminaires,F003,45.17,118.22
-P0020,Suspension Brume,Luminaires,F007,56.86,163.74
-P0021,Saladier Terracotta,Arts de la table,F006,38.03,105.63
-P0022,Set de couverts Perle,Arts de la table,F006,31.16,85.44
-P0023,Carafe Jade,Arts de la table,F002,45.02,135.74
-P0024,Set de couverts Celadon,Arts de la table,F006,16.06,41.25
-P0025,Service a the Celadon,Arts de la table,F006,9.6,26.31
-P0026,Saladier Celadon,Arts de la table,F006,47.08,130.55
-P0027,Service a the Faience,Arts de la table,F006,11.39,31.13
-P0028,Carafe Faience,Arts de la table,F002,17.13,51.57
-P0029,Assiette gres Celadon,Arts de la table,F006,46.5,141.84
-P0030,Set de couverts Faience,Arts de la table,F002,35.94,96.29
-P0031,Tapis jute Atlas,Tapis,F003,78.92,164.11
-P0032,Tapis d'exterieur Agadir,Tapis,F003,84.81,193.69
-P0033,Tapis berbere Atlas,Tapis,F003,74.03,152.37
-P0034,Descente de lit Fes,Tapis,F004,107.63,241.81
-P0035,Tapis jute Agadir,Tapis,F004,173.04,448.26
-P0036,Tapis laine Fes,Tapis,F004,47.43,115.58
-P0037,Tapis jute Kilim,Tapis,F003,85.97,181.75
-P0038,Tapis laine Taroudant,Tapis,F003,63.74,134.5
-P0039,Tapis berbere Sahara,Tapis,F003,86.21,220.18
-P0040,Tapis d'exterieur Kilim,Tapis,F004,200.64,504.32
-P0041,Etagere chene Odeon,Rangement,F001,254.47,465.32
-P0042,Buffet Odeon,Rangement,F005,190.74,424.66
-P0043,Bibliotheque Odeon,Rangement,F005,74.79,153.61
-P0044,Bibliotheque Marais,Rangement,F005,77.82,142.72
-P0045,Meuble TV Vendome,Rangement,F005,164.98,374.64
-P0046,Buffet Bastille,Rangement,F005,210.52,383.12
-P0047,Console Passy,Rangement,F001,169.0,353.52
-P0048,Buffet Passy,Rangement,F001,303.02,576.38
-P0049,Meuble TV Odeon,Rangement,F001,122.06,243.86
-P0050,Buffet Auteuil,Rangement,F005,178.88,405.08
-P0051,Jete de canape Correze,Textile deco,F008,7.92,20.39
-P0052,Housse de coussin Sologne,Textile deco,F004,13.26,38.76
-P0053,Nappe brodee Sologne,Textile deco,F004,10.92,32.15
-P0054,Rideau lin Camargue,Textile deco,F008,21.18,56.67
-P0055,Rideau lin Sologne,Textile deco,F004,7.14,19.97
-P0056,Plaid Correze,Textile deco,F008,5.5,15.03
-P0057,Housse de coussin Aubrac,Textile deco,F004,25.66,68.86
-P0058,Nappe brodee Aubrac,Textile deco,F008,22.76,63.71
-P0059,Rideau lin Cevennes,Textile deco,F008,7.8,24.66
-P0060,Plaid Cevennes,Textile deco,F008,22.55,69.55
+P0001,Console PS5 Slim 1To,Consoles et gaming,F001,2450000,3490000
+P0002,Console PS5 Digital,Consoles et gaming,F001,2090000,2990000
+P0003,Manette DualSense blanche,Consoles et gaming,F001,240000,390000
+P0004,Manette Xbox sans fil,Consoles et gaming,F008,230000,370000
+P0005,Casque gaming RGB,Consoles et gaming,F001,95000,180000
+P0006,Console retro portable 520 jeux,Consoles et gaming,F003,60000,125000
+P0007,Tapis de souris XXL RGB,Consoles et gaming,F003,25000,55000
+P0008,Ecouteurs TWS Pro reduction de bruit,Audio,F003,75000,155000
+P0009,Ecouteurs TWS Sport,Audio,F003,55000,110000
+P0010,Enceinte Bluetooth 20W etanche,Audio,F002,90000,175000
+P0011,Enceinte karaoke mobile avec micros,Audio,F002,280000,490000
+P0012,Barre de son TV 80W,Audio,F002,220000,390000
+P0013,Casque Bluetooth supra-aural,Audio,F003,85000,165000
+P0014,Micro cravate sans fil,Audio,F002,45000,95000
+P0015,Chargeur GaN 65W double USB-C,Telephonie et accessoires,F004,38000,85000
+P0016,Powerbank 20000 mAh charge rapide,Telephonie et accessoires,F004,70000,145000
+P0017,Cable USB-C tresse 1m,Telephonie et accessoires,F004,8000,20000
+P0018,Coque silicone iPhone 15,Telephonie et accessoires,F008,9000,25000
+P0019,Verre trempe 9H universel,Telephonie et accessoires,F004,4000,12000
+P0020,Support telephone voiture magnetique,Telephonie et accessoires,F004,18000,40000
+P0021,Coque Tecno Spark 8,Telephonie et accessoires,F004,7000,18000
+P0022,Montre connectee Serie 9 AMOLED,Montres connectees,F007,95000,190000
+P0023,Montre connectee ronde acier,Montres connectees,F007,120000,230000
+P0024,Montre GPS sport multisport,Montres connectees,F007,180000,330000
+P0025,Bracelet connecte fitness,Montres connectees,F007,45000,95000
+P0026,Bracelet silicone 22mm,Montres connectees,F007,6000,16000
+P0027,Montre connectee enfant GPS,Montres connectees,F008,85000,170000
+P0028,Chargeur magnetique montre,Montres connectees,F007,12000,28000
+P0029,Ruban LED RGB 5m telecommande,Eclairage LED,F005,22000,50000
+P0030,Lampe sunset fantaisie,Eclairage LED,F005,28000,62000
+P0031,Lampe lune 3D 18cm,Eclairage LED,F005,35000,78000
+P0032,Projecteur galaxie etoiles,Eclairage LED,F005,65000,135000
+P0033,Guirlande LED exterieur 10m,Eclairage LED,F005,30000,65000
+P0034,Ampoule connectee WiFi,Eclairage LED,F005,18000,42000
+P0035,Lampadaire LED salon,Eclairage LED,F005,140000,265000
+P0036,Friteuse a air 5L,Electromenager,F006,240000,420000
+P0037,Bouilloire electrique inox 1.8L,Electromenager,F006,55000,105000
+P0038,Blender mixeur 2L 1000W,Electromenager,F006,95000,175000
+P0039,Fer a repasser vapeur,Electromenager,F006,60000,115000
+P0040,Ventilateur sur pied silencieux,Electromenager,F006,110000,205000
+P0041,Machine a cafe expresso 15 bars,Electromenager,F006,320000,560000
+P0042,Mini refrigerateur 45L,Electromenager,F006,480000,795000

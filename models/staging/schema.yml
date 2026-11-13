@@ -14,16 +14,18 @@ models:
         tests:
           - not_null
       - name: pays
-        description: Pays d'origine des expeditions.
+        description: Pays d'origine des expeditions (Chine, Emirats arabes unis).
         tests:
           - not_null
       - name: delai_contractuel_jours
-        description: Delai de livraison contractuel en jours calendaires.
+        description: >
+          Delai de fret promis en jours calendaires jusqu'a l'arrivee a Tana,
+          dedouanement compris (AIR environ 10 a 15 jours, SEA environ 40 a 55).
         tests:
           - not_null
           - positif_ou_nul
       - name: note_rse
-        description: Note RSE attribuee lors du dernier audit fournisseur.
+        description: Note RSE attribuee lors du dernier audit usine.
         tests:
           - accepted_values:
               values: ["A", "B", "C", "D"]
@@ -48,12 +50,12 @@ models:
           - not_null
           - accepted_values:
               values:
-                - "Canapes et fauteuils"
-                - "Luminaires"
-                - "Arts de la table"
-                - "Tapis"
-                - "Rangement"
-                - "Textile deco"
+                - "Consoles et gaming"
+                - "Audio"
+                - "Telephonie et accessoires"
+                - "Montres connectees"
+                - "Eclairage LED"
+                - "Electromenager"
       - name: id_fournisseur
         description: Fournisseur principal du produit.
         tests:
@@ -62,12 +64,16 @@ models:
               to: ref('stg_fournisseurs')
               field: id_fournisseur
       - name: prix_achat
-        description: Prix d'achat unitaire negocie, en euros.
+        description: >
+          Cout de revient unitaire debarque (achat + fret + douane), en ariary
+          (MGA). Equivalent ERP : landedCostMga.
         tests:
           - not_null
           - positif_ou_nul
       - name: prix_vente
-        description: Prix de vente catalogue, en euros.
+        description: >
+          Prix de vente conseille en ariary (MGA), equivalent du
+          sellingPriceMga de l'ERP.
         tests:
           - not_null
           - positif_ou_nul
@@ -81,15 +87,17 @@ models:
           - ratio_entre_bornes
 
   - name: stg_entrepots
-    description: Vue de staging du referentiel des entrepots logistiques.
+    description: >
+      Vue de staging du referentiel des sites : depot central d'Ankorondrano,
+      boutiques de Tana et depot de Tamatave.
     columns:
       - name: id_entrepot
-        description: Identifiant unique de l'entrepot (cle naturelle E0X).
+        description: Identifiant unique du site (cle naturelle E0X).
         tests:
           - unique
           - not_null
       - name: nom_entrepot
-        description: Nom usuel du site logistique.
+        description: Nom usuel du site (depot ou boutique).
         tests:
           - not_null
       - name: capacite_m3
@@ -98,16 +106,18 @@ models:
           - not_null
           - positif_ou_nul
       - name: type_entrepot
-        description: Role du site dans le reseau logistique.
+        description: Role du site dans le reseau de distribution.
         tests:
           - accepted_values:
-              values: ["central", "regional"]
+              values: ["central", "boutique", "depot_regional"]
 
   - name: stg_commandes_achats
-    description: Vue de staging des commandes d'achats aupres des fournisseurs.
+    description: >
+      Vue de staging des lots d'import (equivalent ERP : ShipmentBatch),
+      commandes aupres des fournisseurs en fret AIR ou SEA.
     columns:
       - name: id_commande
-        description: Identifiant unique de la commande d'achat (cle naturelle CA000X).
+        description: Identifiant unique du lot d'import (cle naturelle CA000X).
         tests:
           - unique
           - not_null
@@ -126,14 +136,16 @@ models:
               to: ref('stg_fournisseurs')
               field: id_fournisseur
       - name: id_entrepot
-        description: Entrepot de livraison attendu.
+        description: >
+          Site de livraison attendu (depot central pour le fret AIR via Ivato,
+          depot de Tamatave ou depot central pour le fret SEA).
         tests:
           - not_null
           - relationships:
               to: ref('stg_entrepots')
               field: id_entrepot
       - name: date_commande
-        description: Date d'emission de la commande.
+        description: Date de commande du lot aupres du fournisseur.
         tests:
           - not_null
       - name: quantite_commandee
@@ -142,14 +154,18 @@ models:
           - not_null
           - positif_ou_nul
       - name: statut
-        description: Etat d'avancement de la commande.
+        description: >
+          Etat d'avancement du lot : en_cours couvre les statuts ERP SOURCING
+          a CUSTOMS_CLEARING, recue correspond a RECEIVED_TANA.
         tests:
           - not_null
           - accepted_values:
               values: ["en_cours", "partielle", "recue"]
 
   - name: stg_receptions
-    description: Vue de staging des receptions en entrepot, rattachees aux commandes.
+    description: >
+      Vue de staging des arrivees RECEIVED_TANA apres dedouanement,
+      rattachees aux lots d'import.
     columns:
       - name: id_reception
         description: Identifiant unique de la reception (cle naturelle R000X).
@@ -157,14 +173,14 @@ models:
           - unique
           - not_null
       - name: id_commande
-        description: Commande d'achat receptionnee.
+        description: Lot d'import receptionne.
         tests:
           - not_null
           - relationships:
               to: ref('stg_commandes_achats')
               field: id_commande
       - name: date_reception
-        description: Date d'arrivee physique en entrepot.
+        description: Date d'arrivee physique au depot, apres douane.
         tests:
           - not_null
       - name: quantite_recue
@@ -236,14 +252,14 @@ models:
               to: ref('stg_produits')
               field: id_produit
       - name: id_entrepot
-        description: Entrepot ayant expedie ou approvisionne la vente.
+        description: Site (boutique ou depot) ayant servi ou expedie la vente.
         tests:
           - not_null
           - relationships:
               to: ref('stg_entrepots')
               field: id_entrepot
       - name: canal
-        description: Canal de vente.
+        description: Canal de vente (boutique ou commande web livree sur Tana).
         tests:
           - not_null
           - accepted_values:
@@ -254,7 +270,7 @@ models:
           - not_null
           - positif_ou_nul
       - name: prix_unitaire
-        description: Prix unitaire reellement pratique, promotions incluses.
+        description: Prix unitaire reellement pratique en ariary (MGA), promotions incluses.
         tests:
           - not_null
           - positif_ou_nul
