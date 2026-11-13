@@ -15,3 +15,6 @@ package-lock.yml
 
 # Systeme
 .DS_Store
+
+# Cookie utilisateur dbt
+.user.yml
