@@ -31,9 +31,12 @@ export DBT_PROFILES_DIR="$PWD"
 echo "==> Generation des seeds"
 .venv/bin/python scripts/generer_seeds.py
 
-# 4. Pipeline dbt complet
-echo "==> dbt deps"
-.venv/bin/dbt deps
+# 4. Pipeline dbt complet (dbt deps seulement si le paquet n'est pas deja la,
+# pour que les relances fonctionnent hors ligne)
+if [ ! -d "dbt_packages/dbt_utils" ]; then
+    echo "==> dbt deps"
+    .venv/bin/dbt deps
+fi
 echo "==> dbt seed"
 .venv/bin/dbt seed --full-refresh
 echo "==> dbt build"
