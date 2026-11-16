@@ -19,6 +19,7 @@ models:
                 - "Montres connectees"
                 - "Eclairage LED"
                 - "Electromenager"
+                - "Drones"
       - name: quantite_vendue
         description: Quantites vendues sur la periode, tous canaux confondus.
         tests:

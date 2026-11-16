@@ -56,6 +56,7 @@ models:
                 - "Montres connectees"
                 - "Eclairage LED"
                 - "Electromenager"
+                - "Drones"
       - name: id_fournisseur
         description: Fournisseur principal du produit.
         tests:
