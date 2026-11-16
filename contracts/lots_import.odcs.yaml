@@ -1,0 +1,246 @@
+# Contrat de donnees ODCS (standard Bitol) : lots d'import et receptions.
+# Producteur : SupplyOps (commandes fournisseurs). Consommateurs : dbt, SupplySense.
+apiVersion: v3.0.2
+kind: DataContract
+id: lots-import
+name: Lots d'import
+version: 1.0.0
+status: active
+domain: import-distribution-madagascar
+dataProduct: entrepot-supply
+tenant: wize-import-tana
+
+description:
+  purpose: >
+    Lots d'import commandes aux fournisseurs de Chine et des Emirats,
+    achemines en fret AIR (Ivato) ou SEA (port de Tamatave), puis
+    receptionnes en une ou plusieurs arrivees apres dedouanement.
+  usage: >
+    commandes_achats.csv porte une commande par produit et par lot ;
+    receptions.csv trace chaque arrivee rattachee a sa commande. dbt en
+    derive les delais fournisseurs et le taux de service OTIF.
+  limitations: >
+    L'arrivee prevue se deduit de la date de commande et du delai
+    contractuel du fournisseur : il n'y a pas de tracking transporteur.
+
+schema:
+  - name: commandes_achats
+    physicalName: seeds/commandes_achats.csv
+    logicalType: object
+    physicalType: csv
+    description: Une ligne par commande d'un produit dans un lot d'import.
+    properties:
+      - name: id_commande
+        logicalType: string
+        physicalType: text
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: Identifiant unique du lot d'import (cle naturelle CA000X).
+      - name: id_produit
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Produit commande (reference du catalogue).
+        quality:
+          - name: produit_existant
+            description: Le produit commande existe dans produits.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_produit
+              table: produits
+              colonne_cible: id_produit
+      - name: id_fournisseur
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Fournisseur du lot (Chine ou Emirats arabes unis).
+        quality:
+          - name: fournisseur_existant
+            description: Le fournisseur du lot existe dans fournisseurs.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_fournisseur
+              table: fournisseurs
+              colonne_cible: id_fournisseur
+      - name: id_entrepot
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Site de livraison du lot (depot central en general).
+        quality:
+          - name: entrepot_existant
+            description: Le site de livraison existe dans entrepots.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_entrepot
+              table: entrepots
+              colonne_cible: id_entrepot
+      - name: date_commande
+        logicalType: date
+        physicalType: date
+        required: true
+        description: Date de passation de la commande, format ISO AAAA-MM-JJ.
+      - name: quantite_commandee
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Quantite commandee, en unites.
+        quality:
+          - name: quantite_commandee_positive
+            description: La quantite commandee est strictement positive.
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: quantite_commandee
+              operateur: ">"
+              valeur: 0
+      - name: statut
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Avancement du lot, de la commande a la reception complete.
+        quality:
+          - name: statut_autorise
+            description: Le statut appartient a [en_cours, partielle, recue].
+            dimension: conformity
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: valeurs_autorisees
+              colonne: statut
+              valeurs:
+                - en_cours
+                - partielle
+                - recue
+    quality:
+      - name: fret_coherent_avec_delai
+        description: >
+          Regle douane et fret : le delai contractuel du fournisseur du lot
+          est coherent avec son mode de fret. AIR entre 5 et 25 jours
+          jusqu'a Ivato, SEA entre 30 et 70 jours via le port de Tamatave,
+          dedouanement compris. L'arrivee prevue (commande + delai) reste
+          ainsi toujours posterieure ou egale a la date de commande.
+        dimension: consistency
+        type: custom
+        engine: supplysense
+        implementation:
+          controle: coherence_fret_delai
+          cle: id_fournisseur
+          table_fournisseurs: fournisseurs
+          colonne_mode: mode_fret
+          colonne_delai: delai_contractuel_jours
+          bornes:
+            AIR: [5, 25]
+            SEA: [30, 70]
+
+  - name: receptions
+    physicalName: seeds/receptions.csv
+    logicalType: object
+    physicalType: csv
+    description: Une ligne par arrivee de marchandise rattachee a une commande.
+    properties:
+      - name: id_reception
+        logicalType: string
+        physicalType: text
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: Identifiant unique de la reception (cle naturelle R000X).
+      - name: id_commande
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Commande d'origine de l'arrivee.
+        quality:
+          - name: commande_existante
+            description: La commande receptionnee existe dans commandes_achats.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_commande
+              table: commandes_achats
+              colonne_cible: id_commande
+      - name: date_reception
+        logicalType: date
+        physicalType: date
+        required: true
+        description: Date d'arrivee effective a l'entrepot, apres dedouanement.
+        quality:
+          - name: reception_apres_commande
+            description: >
+              Regle de dates : la marchandise ne peut pas arriver avant
+              d'avoir ete commandee. La date de reception est posterieure
+              ou egale a la date de commande du lot.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: comparaison_jointure
+              colonne: date_reception
+              operateur: ">="
+              cle: id_commande
+              table: commandes_achats
+              cle_cible: id_commande
+              colonne_cible: date_commande
+      - name: quantite_recue
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Quantite recue sur cette arrivee, en unites.
+        quality:
+          - name: quantite_recue_positive
+            description: La quantite recue est strictement positive.
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: quantite_recue
+              operateur: ">"
+              valeur: 0
+
+team:
+  - username: heni
+    name: Heni
+    role: owner
+    description: Direction
+    dateIn: "2026-01-01"
+
+support:
+  - channel: "#supply-import"
+    tool: slack
+    scope: issues
+    description: Canal de suivi des lots, du fret et de la douane.
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    element: commandes_achats.date_commande
+    driver: operational
+
+tags:
+  - import
+  - fret
+  - douane
+  - otif
+
+customProperties:
+  - property: source_saisie
+    value: SupplyOps (port 4310), creation de lots et receptions

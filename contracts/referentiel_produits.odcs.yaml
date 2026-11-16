@@ -1,0 +1,160 @@
+# Contrat de donnees ODCS (standard Bitol) : referentiel produits.
+# Producteur : SupplyOps (saisie controlee). Consommateurs : dbt, SupplySense.
+apiVersion: v3.0.2
+kind: DataContract
+id: referentiel-produits
+name: Referentiel produits
+version: 1.0.0
+status: active
+domain: import-distribution-madagascar
+dataProduct: entrepot-supply
+tenant: wize-import-tana
+
+description:
+  purpose: >
+    Catalogue des produits electroniques importes (consoles, audio,
+    telephonie, montres, LED, electromenager) et revendus a Antananarivo.
+    C'est le referentiel pivot : toutes les autres tables (stocks, ventes,
+    lots d'import) s'y rattachent par id_produit.
+  usage: >
+    Source unique des prix catalogue en ariary (MGA) : prix_achat est le
+    cout de revient debarque (achat + fret + douane), prix_vente le prix
+    conseille en boutique et sur le web. Sert aux marges dbt et aux fiches
+    produits SupplySense.
+  limitations: >
+    Prix catalogue uniquement : les prix reellement pratiques vivent dans
+    ventes.csv. Aucune donnee de stock ici.
+
+schema:
+  - name: produits
+    physicalName: seeds/produits.csv
+    logicalType: object
+    physicalType: csv
+    description: Une ligne par produit du catalogue, cle naturelle id_produit.
+    properties:
+      - name: id_produit
+        logicalType: string
+        physicalType: text
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: Identifiant unique du produit (cle naturelle P000X).
+      - name: nom_produit
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Libelle commercial affiche en boutique et sur le web.
+      - name: famille
+        logicalType: string
+        physicalType: text
+        required: true
+        description: >
+          Famille marchande de rattachement. La liste autorisee est tenue
+          dans models/staging/schema.yml (accepted_values de stg_produits),
+          qui reference ce contrat comme source d'exigence.
+        quality:
+          - name: famille_du_contrat
+            description: >
+              La famille appartient a la liste autorisee par le contrat dbt
+              (models/staging/schema.yml, modele stg_produits).
+            dimension: conformity
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: valeurs_schema_dbt
+              colonne: famille
+              modele: stg_produits
+              colonne_schema: famille
+      - name: id_fournisseur
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Fournisseur principal du produit (Chine ou Emirats).
+        quality:
+          - name: fournisseur_existant
+            description: Le fournisseur reference existe dans fournisseurs.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_fournisseur
+              table: fournisseurs
+              colonne_cible: id_fournisseur
+      - name: prix_achat
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: >
+          Cout de revient unitaire debarque en ariary (MGA) : achat
+          fournisseur + fret AIR ou SEA + dedouanement a Tamatave ou Ivato.
+        quality:
+          - name: prix_achat_positif
+            description: Le cout de revient est strictement positif (en MGA).
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: prix_achat
+              operateur: ">"
+              valeur: 0
+      - name: prix_vente
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Prix de vente conseille en ariary (MGA).
+        quality:
+          - name: prix_vente_positif
+            description: Le prix de vente est strictement positif (en MGA).
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: prix_vente
+              operateur: ">"
+              valeur: 0
+    quality:
+      - name: marge_positive
+        description: >
+          Regle de gestion : le prix de vente depasse strictement le cout
+          de revient debarque, aucune vente a perte au catalogue.
+        dimension: accuracy
+        type: custom
+        engine: supplysense
+        implementation:
+          controle: comparaison_colonnes
+          colonne_gauche: prix_vente
+          operateur: ">"
+          colonne_droite: prix_achat
+
+team:
+  - username: heni
+    name: Heni
+    role: owner
+    description: Direction
+    dateIn: "2026-01-01"
+
+support:
+  - channel: "#supply-donnees"
+    tool: slack
+    scope: issues
+    description: Canal de signalement des anomalies du referentiel.
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    element: produits.id_produit
+    driver: operational
+
+tags:
+  - referentiel
+  - produits
+  - mga
+
+customProperties:
+  - property: source_saisie
+    value: SupplyOps (port 4310), ecriture controlee des seeds

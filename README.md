@@ -99,7 +99,7 @@ Sans `ERP_DATABASE_URL`, le script affiche une aide et sort proprement : la CI e
 ## Ce que ce projet demontre pour un role de Product Owner Data et IA
 
 - **Data products definis par le metier** : chaque mart repond a une question concrete de l'activite d'import (quelles references commander avant la rupture, quel fournisseur penalise la promesse client, quelle famille porte la marge), avec un grain explicite, des regles de gestion ecrites et des criteres d'acceptation traduits en tests dbt.
-- **Qualite contractualisee** : les attentes sur les donnees (unicite, integrite referentielle, bornes des ratios, coherence receptions vs lots d'import) sont versionnees et verifiees a chaque build, comme le prevoit une demarche de data contracts.
+- **Qualite contractualisee** : les attentes sur les donnees (unicite, integrite referentielle, bornes des ratios, coherence receptions vs lots d'import) sont versionnees et verifiees a chaque build. Le dossier `contracts/` publie en plus 4 **contrats de donnees ODCS v3** (standard [Bitol](https://bitol.io)) sur les seeds : referentiel produits, stocks quotidiens (SLA de fraicheur), ventes et lots d'import, avec purpose, semantique des colonnes, regles de qualite, SLA et owner. Ces contrats sont vivants : le pipeline de [supply-data-agents](https://github.com/adh-studio/supply-data-agents) les valide AVANT chaque dbt build et refuse la publication a la moindre regle violee.
 - **Documentation self-service** : le catalogue dbt (lineage, descriptions de colonnes, tests) est publie sur GitHub Pages et consultable sans outil supplementaire, premiere brique d'un catalogue de data products.
 - **Domain-Driven Data** : la separation marts/supply et marts/offre reflete un decoupage par domaine metier, aligne avec une organisation Data Mesh ou chaque domaine possede ses produits.
 - **Industrialisation** : pipeline reproductible de bout en bout (donnees synthetiques deterministes, dependances epinglees, CI sur chaque push) et chemin documente vers les donnees reelles de l'ERP, condition du passage a l'echelle.
@@ -110,6 +110,7 @@ Sans `ERP_DATABASE_URL`, le script affiche une aide et sort proprement : la CI e
 scripts/generer_seeds.py        generation deterministe des donnees synthetiques
 scripts/exporter_depuis_erp.py  export optionnel depuis la base PostgreSQL de l'ERP
 seeds/                          CSV sources versionnes
+contracts/                      contrats de donnees ODCS v3 (Bitol) des seeds
 models/staging/                 vues de staging + tests
 models/marts/supply/            data products supply + tests
 models/marts/offre/             data products offre + tests

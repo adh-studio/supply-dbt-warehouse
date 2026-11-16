@@ -1,0 +1,126 @@
+# Contrat de donnees ODCS (standard Bitol) : photographies de stock.
+# Producteur : SupplyOps (inventaires). Consommateurs : dbt, SupplySense.
+apiVersion: v3.0.2
+kind: DataContract
+id: stocks-quotidiens
+name: Stocks quotidiens
+version: 1.0.0
+status: active
+domain: import-distribution-madagascar
+dataProduct: entrepot-supply
+tenant: wize-import-tana
+
+description:
+  purpose: >
+    Photographies d'inventaire par produit et par site : depot central
+    d'Ankorondrano, boutiques de Tana, depot de Tamatave. C'est la matiere
+    premiere du taux de rupture et de la couverture de stock.
+  usage: >
+    Chaque ligne est l'etat observe d'un produit dans un entrepot a une
+    date d'inventaire. Les marts dbt en derivent la couverture en jours,
+    les ruptures et les dormants affiches dans SupplySense.
+  limitations: >
+    Photographies ponctuelles, pas un livre de mouvements : entre deux
+    inventaires, le stock reel peut differer.
+
+schema:
+  - name: stocks
+    physicalName: seeds/stocks.csv
+    logicalType: object
+    physicalType: csv
+    description: >
+      Une ligne par produit x entrepot x date d'inventaire, cle composite.
+    properties:
+      - name: id_produit
+        logicalType: string
+        physicalType: text
+        required: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: Produit photographie (reference du catalogue).
+        quality:
+          - name: produit_existant
+            description: Le produit reference existe dans produits.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_produit
+              table: produits
+              colonne_cible: id_produit
+      - name: id_entrepot
+        logicalType: string
+        physicalType: text
+        required: true
+        primaryKey: true
+        primaryKeyPosition: 2
+        description: Site ou l'inventaire a ete fait (depot ou boutique).
+        quality:
+          - name: entrepot_existant
+            description: L'entrepot reference existe dans entrepots.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_entrepot
+              table: entrepots
+              colonne_cible: id_entrepot
+      - name: date_inventaire
+        logicalType: date
+        physicalType: date
+        required: true
+        primaryKey: true
+        primaryKeyPosition: 3
+        description: Date de la photographie, au format ISO AAAA-MM-JJ.
+      - name: quantite_disponible
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Quantite comptee, en unites (zero = rupture observee).
+        quality:
+          - name: quantite_positive_ou_nulle
+            description: >
+              La quantite comptee ne peut pas etre negative : zero signale
+              une rupture, jamais moins.
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: quantite_disponible
+              operateur: ">="
+              valeur: 0
+
+team:
+  - username: heni
+    name: Heni
+    role: owner
+    description: Direction
+    dateIn: "2026-01-01"
+
+support:
+  - channel: "#supply-donnees"
+    tool: slack
+    scope: issues
+    description: Canal de signalement des anomalies d'inventaire.
+
+slaProperties:
+  - property: freshness
+    value: 7
+    unit: d
+    element: stocks.date_inventaire
+    driver: operational
+    description: >
+      SLA de fraicheur : le dernier inventaire enregistre date de moins de
+      7 jours. Au dela, les indicateurs de rupture ne sont plus fiables.
+
+tags:
+  - stocks
+  - inventaire
+  - fraicheur
+
+customProperties:
+  - property: source_saisie
+    value: SupplyOps (port 4310), photographies d'inventaire du jour

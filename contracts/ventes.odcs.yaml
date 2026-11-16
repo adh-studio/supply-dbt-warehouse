@@ -1,0 +1,166 @@
+# Contrat de donnees ODCS (standard Bitol) : journal des ventes.
+# Producteur : SupplyOps (caisse et web). Consommateurs : dbt, SupplySense.
+apiVersion: v3.0.2
+kind: DataContract
+id: ventes
+name: Ventes
+version: 1.0.0
+status: active
+domain: import-distribution-madagascar
+dataProduct: entrepot-supply
+tenant: wize-import-tana
+
+description:
+  purpose: >
+    Journal des ventes unitaires des boutiques de Tana et du site web,
+    en ariary (MGA). Alimente le chiffre d'affaires, les marges reelles
+    et la vitesse de rotation calcules par dbt.
+  usage: >
+    Une ligne par ticket : produit, site, canal (magasin ou web), quantite
+    et prix unitaire reellement pratique. Le prix peut differer du prix
+    catalogue (remises, promotions).
+  limitations: >
+    Pas de retours ni d'avoirs dans ce flux : une vente enregistree est
+    definitive. Les quantites sont toujours positives.
+
+schema:
+  - name: ventes
+    physicalName: seeds/ventes.csv
+    logicalType: object
+    physicalType: csv
+    description: Une ligne par vente, cle naturelle id_vente.
+    properties:
+      - name: id_vente
+        logicalType: string
+        physicalType: text
+        required: true
+        unique: true
+        primaryKey: true
+        primaryKeyPosition: 1
+        description: Identifiant unique de la vente (cle naturelle V0000X).
+      - name: date_vente
+        logicalType: date
+        physicalType: date
+        required: true
+        description: Date de la vente, au format ISO AAAA-MM-JJ.
+        quality:
+          - name: date_non_future
+            description: >
+              Une vente ne peut pas etre datee dans le futur : la date est
+              inferieure ou egale a la date du jour.
+            dimension: timeliness
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: date_non_future
+              colonne: date_vente
+      - name: id_produit
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Produit vendu (reference du catalogue).
+        quality:
+          - name: produit_existant
+            description: Le produit vendu existe dans produits.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_produit
+              table: produits
+              colonne_cible: id_produit
+      - name: id_entrepot
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Site de la vente (boutique ou depot pour le web).
+        quality:
+          - name: entrepot_existant
+            description: Le site de vente existe dans entrepots.csv.
+            dimension: consistency
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: reference
+              colonne: id_entrepot
+              table: entrepots
+              colonne_cible: id_entrepot
+      - name: canal
+        logicalType: string
+        physicalType: text
+        required: true
+        description: Canal de vente, magasin ou web.
+        quality:
+          - name: canal_autorise
+            description: Le canal appartient a la liste [magasin, web].
+            dimension: conformity
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: valeurs_autorisees
+              colonne: canal
+              valeurs:
+                - magasin
+                - web
+      - name: quantite
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Nombre d'unites vendues sur le ticket.
+        quality:
+          - name: quantite_strictement_positive
+            description: La quantite vendue est strictement positive.
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: quantite
+              operateur: ">"
+              valeur: 0
+      - name: prix_unitaire
+        logicalType: integer
+        physicalType: int
+        required: true
+        description: Prix unitaire reellement pratique, en ariary (MGA).
+        quality:
+          - name: prix_unitaire_positif
+            description: Le prix unitaire pratique est strictement positif.
+            dimension: accuracy
+            type: custom
+            engine: supplysense
+            implementation:
+              controle: seuil
+              colonne: prix_unitaire
+              operateur: ">"
+              valeur: 0
+
+team:
+  - username: heni
+    name: Heni
+    role: owner
+    description: Direction
+    dateIn: "2026-01-01"
+
+support:
+  - channel: "#supply-donnees"
+    tool: slack
+    scope: issues
+    description: Canal de signalement des anomalies de caisse.
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    element: ventes.date_vente
+    driver: operational
+
+tags:
+  - ventes
+  - chiffre-affaires
+  - mga
+
+customProperties:
+  - property: source_saisie
+    value: SupplyOps (port 4310), saisie de vente rapide
