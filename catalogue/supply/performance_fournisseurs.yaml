@@ -1,0 +1,77 @@
+# Data product du domaine supply : performance des fournisseurs.
+# Valide par catalogue/schema/data_product.schema.json (moteur catalogue
+# de supply-data-agents).
+id: performance_fournisseurs
+nom: Performance fournisseurs
+domaine: supply
+description: >
+  La fiabilite reelle de chaque fournisseur de Chine et des Emirats :
+  delai d'import constate (fret + douane) contre delai promis, taux de
+  service OTIF (a l'heure et complet), et taux de rupture observe par
+  entrepot et famille. C'est le dossier a ouvrir avant de renegocier un
+  contrat de fret ou de choisir qui reapprovisionne en priorite.
+owner:
+  nom: Heni
+  role: Direction, Product Owner Data
+
+ports_de_sortie:
+  - table: supply_delais_fournisseurs
+    grain: une ligne par fournisseur
+    colonnes:
+      - nom: nom_fournisseur
+        sens: Raison sociale du fournisseur evalue.
+      - nom: delai_contractuel_jours
+        sens: Delai de fret promis (AIR ou SEA), douane comprise.
+      - nom: delai_moyen_reel_jours
+        sens: Delai moyen constate entre la commande et l'arrivee a Tana.
+      - nom: ecart_moyen_jours
+        sens: Ecart moyen entre delai reel et delai promis (negatif si en avance).
+      - nom: taux_service_otif
+        sens: Part des commandes livrees a l'heure et completes (entre 0 et 1).
+  - table: supply_taux_rupture
+    grain: une ligne par entrepot x famille
+    colonnes:
+      - nom: nom_entrepot
+        sens: Depot ou boutique ou les ruptures sont observees.
+      - nom: famille
+        sens: Famille marchande concernee.
+      - nom: nb_ruptures
+        sens: Nombre d'observations d'inventaire a stock nul.
+      - nom: taux_rupture
+        sens: Part des observations en rupture (entre 0 et 1).
+
+contrat_reference: lots_import.odcs.yaml
+
+slo:
+  fraicheur_heures: 26
+  completude_pct: 100
+  disponibilite: "7 j / 7, rafraichi par le build nocturne de 2 h 30"
+
+consommateurs:
+  - type: vue
+    id: dashboard
+    usage: taux de rupture par entrepot et OTIF moyen
+  - type: vue
+    id: rapport
+    usage: fournisseurs a surveiller du lundi matin
+  - type: vue
+    id: assistant
+    usage: questions metier sur les delais et l'OTIF
+  - type: module
+    id: rapport_hebdo
+    usage: KPI OTIF et pires fournisseurs
+  - type: module
+    id: agent_qa
+    usage: reponses chiffrees sur la fiabilite fournisseurs
+  - type: export
+    id: rapport-hebdo.html
+    usage: page HTML publiee chaque lundi
+
+question_exemple: "Quels fournisseurs ont le pire taux OTIF ?"
+
+version: 1.0.0
+changelog:
+  - version: 1.0.0
+    date: "2026-11-16"
+    description: Declaration initiale du data product dans le catalogue.
+    auteur: Heni

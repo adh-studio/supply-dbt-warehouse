@@ -1,0 +1,66 @@
+# Data product du domaine offre : palmares des produits.
+# Valide par catalogue/schema/data_product.schema.json (moteur catalogue
+# de supply-data-agents).
+id: palmares_produits
+nom: Palmares des produits
+domaine: offre
+description: >
+  Le classement complet des produits du catalogue par chiffre d'affaires,
+  avec un segment commercial lisible : top, coeur de gamme, flop et sans
+  vente. Chaque produit du referentiel y figure, meme sans aucune vente :
+  c'est la liste de travail des fiches produits a soigner, des mises en
+  avant boutique et web, et des references a destocker ou arreter.
+owner:
+  nom: Heni
+  role: Direction, Product Owner Data
+
+ports_de_sortie:
+  - table: offre_top_flop_produits
+    grain: une ligne par produit du referentiel
+    colonnes:
+      - nom: id_produit
+        sens: Produit classe (cle naturelle du referentiel).
+      - nom: nom_produit
+        sens: Libelle commercial affiche en boutique et sur le web.
+      - nom: chiffre_affaires
+        sens: Chiffre d'affaires du produit sur la periode, en ariary (MGA).
+      - nom: rang_ca
+        sens: Rang par chiffre d'affaires decroissant (1 = meilleur).
+      - nom: segment
+        sens: Segment commercial (top, coeur_de_gamme, flop, sans_vente).
+
+contrat_reference: referentiel_produits.odcs.yaml
+
+slo:
+  fraicheur_heures: 26
+  completude_pct: 100
+  disponibilite: "7 j / 7, rafraichi par le build nocturne de 2 h 30"
+
+consommateurs:
+  - type: vue
+    id: dashboard
+    usage: produits dormants et pires rotations
+  - type: vue
+    id: fiches
+    usage: choix des produits dont la fiche est a generer
+  - type: vue
+    id: assistant
+    usage: questions metier sur les tops et les flops
+  - type: module
+    id: fiches_produits
+    usage: brouillons de fiches des produits a mettre en avant
+  - type: module
+    id: agent_qa
+    usage: reponses chiffrees sur le classement
+  - type: export
+    id: outbox-slack
+    usage: alertes et syntheses archivees dans outbox/
+
+question_exemple: "Quels sont les produits top en chiffre d'affaires ?"
+
+version: 1.0.0
+changelog:
+  - version: 1.0.0
+    date: "2026-11-16"
+    description: Declaration initiale du data product dans le catalogue.
+    auteur: Heni

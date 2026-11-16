@@ -70,6 +70,23 @@ REGENERER_SEEDS=1 ./run_e2e.sh   # repart des donnees synthetiques, ecrase les s
 
 Deux fichiers d'etat non versionnes vivent a la racine du repo : `etat_build.json` (dernier build dbt : statut, pass/fail/total, duree, declencheur, historique des 20 derniers), ecrit par le module `pipeline` du repo [supply-data-agents](https://github.com/adh-studio/supply-data-agents), et `supplyops_etat.json` (saisies en attente de publication), ecrit par SupplyOps. Le verrou `.pipeline.lock` empeche deux builds concurrents.
 
+## Le catalogue de data products (`catalogue/`)
+
+Les 5 marts sont declares comme **data products** dans `catalogue/`, un YAML par produit de donnees, ranges par domaine (vision Data Mesh, cote producteur) :
+
+```
+catalogue/
+  schema/data_product.schema.json   JSON Schema qui valide chaque declaration
+  supply/couverture_stock.yaml            -> mart supply_couverture_stock
+  supply/performance_fournisseurs.yaml    -> marts supply_delais_fournisseurs + supply_taux_rupture
+  offre/rentabilite_familles.yaml         -> mart offre_marge_familles
+  offre/palmares_produits.yaml            -> mart offre_top_flop_produits
+```
+
+Chaque declaration porte : la description metier en francais, l'owner (nom et role), les ports de sortie (table, grain, colonnes cles et leur sens), le contrat ODCS de `contracts/` qui gouverne ses sources, les SLO (fraicheur 26 h pour un build nocturne a 2 h 30 plus marge, completude, disponibilite), les consommateurs declares (vues SupplySense, modules agents, exports), une question exemple pour l'assistant, la version et son changelog.
+
+Ces declarations sont **vivantes** : le module `catalogue` de [supply-data-agents](https://github.com/adh-studio/supply-data-agents) les valide contre le JSON Schema, verifie les references croisees (le mart existe dans l'entrepot DuckDB, le contrat existe dans `contracts/`, les consommateurs sont connus) et calcule leur etat reel (fraicheur contre SLO via `etat_build.json`, volumes, statut du contrat, score de maturite). La vue **Catalogue** de SupplySense les expose en marketplace self-service.
+
 ## Rejouer les tests
 
 ```bash
@@ -111,6 +128,7 @@ scripts/generer_seeds.py        generation deterministe des donnees synthetiques
 scripts/exporter_depuis_erp.py  export optionnel depuis la base PostgreSQL de l'ERP
 seeds/                          CSV sources versionnes
 contracts/                      contrats de donnees ODCS v3 (Bitol) des seeds
+catalogue/                      declarations des data products (YAML + JSON Schema)
 models/staging/                 vues de staging + tests
 models/marts/supply/            data products supply + tests
 models/marts/offre/             data products offre + tests

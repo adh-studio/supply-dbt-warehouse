@@ -1,0 +1,68 @@
+# Data product du domaine supply : couverture de stock.
+# Valide par catalogue/schema/data_product.schema.json (moteur catalogue
+# de supply-data-agents).
+id: couverture_stock
+nom: Couverture de stock
+domaine: supply
+description: >
+  Combien de jours de vente chaque produit importe peut encore tenir dans
+  chaque depot ou boutique d'Antananarivo. Le stock du dernier inventaire
+  est rapporte a la vente moyenne des 90 derniers jours, et chaque ligne
+  recoit un statut lisible (rupture, tendu, sain, surstock, dormant) :
+  c'est la base des alertes de reappro et de la chasse au stock dormant.
+owner:
+  nom: Heni
+  role: Direction, Product Owner Data
+
+ports_de_sortie:
+  - table: supply_couverture_stock
+    grain: une ligne par produit x entrepot
+    colonnes:
+      - nom: id_produit
+        sens: Produit concerne (cle naturelle du referentiel).
+      - nom: nom_entrepot
+        sens: Depot ou boutique ou le stock est observe.
+      - nom: quantite_disponible
+        sens: Stock disponible au dernier inventaire, en unites.
+      - nom: vente_moyenne_jour
+        sens: Vente moyenne journaliere sur la fenetre de 90 jours.
+      - nom: couverture_jours
+        sens: Jours de vente couverts par le stock actuel (nul si dormant).
+      - nom: statut_couverture
+        sens: Qualification de la situation (rupture, tendu, sain, surstock, dormant).
+
+contrat_reference: stocks_quotidiens.odcs.yaml
+
+slo:
+  fraicheur_heures: 26
+  completude_pct: 100
+  disponibilite: "7 j / 7, rafraichi par le build nocturne de 2 h 30"
+
+consommateurs:
+  - type: vue
+    id: dashboard
+    usage: KPI de couverture et donut des statuts
+  - type: vue
+    id: alertes
+    usage: liste des ruptures et reappro suggere
+  - type: vue
+    id: assistant
+    usage: questions metier sur la couverture
+  - type: module
+    id: alerte_rupture
+    usage: alerte Slack quotidienne de 7 h
+  - type: module
+    id: rapport_hebdo
+    usage: compte des dormants du lundi matin
+  - type: export
+    id: outbox-slack
+    usage: messages d'alerte archives dans outbox/
+
+question_exemple: "Quelle est la couverture de stock moyenne ?"
+
+version: 1.0.0
+changelog:
+  - version: 1.0.0
+    date: "2026-11-16"
+    description: Declaration initiale du data product dans le catalogue.
+    auteur: Heni

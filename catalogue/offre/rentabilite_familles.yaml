@@ -1,0 +1,66 @@
+# Data product du domaine offre : rentabilite des familles.
+# Valide par catalogue/schema/data_product.schema.json (moteur catalogue
+# de supply-data-agents).
+id: rentabilite_familles
+nom: Rentabilite des familles
+domaine: offre
+description: >
+  Ce que chaque famille de produits importes (consoles, audio, telephonie,
+  montres, LED, electromenager, drones) rapporte vraiment : chiffre
+  d'affaires en ariary, marge brute sur cout de revient debarque, taux de
+  marge et rotation des stocks. C'est l'outil d'arbitrage des achats :
+  on pousse les familles qui margent et tournent, on freine les autres.
+owner:
+  nom: Heni
+  role: Direction, Product Owner Data
+
+ports_de_sortie:
+  - table: offre_marge_familles
+    grain: une ligne par famille marchande
+    colonnes:
+      - nom: famille
+        sens: Famille marchande du referentiel produits.
+      - nom: chiffre_affaires
+        sens: Chiffre d'affaires au prix reellement pratique, en ariary (MGA).
+      - nom: marge_brute
+        sens: Marge brute en ariary (CA - cout de revient debarque des ventes).
+      - nom: taux_marge
+        sens: Taux de marge brute rapporte au chiffre d'affaires (entre 0 et 1).
+      - nom: rotation_periode
+        sens: Nombre de fois ou le stock moyen tourne sur la periode.
+
+contrat_reference: ventes.odcs.yaml
+
+slo:
+  fraicheur_heures: 26
+  completude_pct: 100
+  disponibilite: "7 j / 7, rafraichi par le build nocturne de 2 h 30"
+
+consommateurs:
+  - type: vue
+    id: dashboard
+    usage: marge et rotation par famille
+  - type: vue
+    id: rapport
+    usage: top familles par taux de marge
+  - type: vue
+    id: assistant
+    usage: questions metier sur les marges
+  - type: module
+    id: rapport_hebdo
+    usage: synthese du lundi matin
+  - type: module
+    id: agent_qa
+    usage: reponses chiffrees sur la rentabilite
+  - type: export
+    id: rapport.md
+    usage: synthese markdown pour email ou Slack
+
+question_exemple: "Quelles familles ont les meilleures marges ?"
+
+version: 1.0.0
+changelog:
+  - version: 1.0.0
+    date: "2026-11-16"
+    description: Declaration initiale du data product dans le catalogue.
+    auteur: Heni
